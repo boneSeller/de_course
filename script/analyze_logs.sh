@@ -34,7 +34,7 @@ echo "Количество уникальных IP-адресов:" >> "$REPORT_
 awk '{ip[$1] = 1} END {print length(ip)}' "$LOG_FILE" >> "$REPORT_FILE"
 echo "" >> "$REPORT_FILE"
 
-# 3. Количество запросов по методам (GET, POST и т.д.)
+# 3. Количество запросов по методам
 echo "Количество запросов по методам:" >> "$REPORT_FILE"
 awk '{
     n = split($6, parts, " ")
@@ -52,15 +52,12 @@ echo "" >> "$REPORT_FILE"
 # 4. Самый популярный URL
 echo "Самый популярный URL:" >> "$REPORT_FILE"
 awk '{
-    # Извлекаем URL и версию HTTP
     match($0, /"([^"]+)"/)
-    request = substr($0, RSTART+1, RLENGTH-2)  # Убираем внешние кавычки
+    request = substr($0, RSTART+1, RLENGTH-2)
 
-    # Разделяем на метод и остальную часть
     split(request, parts, " ")
     url_with_http = parts[2] " " parts[3]
 
-    # Используем url_with_http как ключ массива
     count[url_with_http]++
 }
 END {
