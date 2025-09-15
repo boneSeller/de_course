@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Файл с логами
+LOG_FILE="access.log"
+REPORT_FILE="report.txt"
+
+# Очищаем или создаем файл отчета
+> "$REPORT_FILE"
+
+# 1. Общее количество запросов
+echo "Общее количество запросов:" >> "$REPORT_FILE"
+wc -l < "$LOG_FILE" >> "$REPORT_FILE"
+echo "" >> "$REPORT_FILE"
+
+# 2. Количество уникальных IP-адресов
+echo "Количество уникальных IP-адресов:" >> "$REPORT_FILE"
+awk '{ip[$1] = 1} END {print length(ip)}' "$LOG_FILE" >> "$REPORT_FILE"
+echo "" >> "$REPORT_FILE"
+
+# 3. Количество запросов по методам (GET, POST и т.д.)
+echo "Количество запросов по методам:" >> "$REPORT_FILE"
+awk '{
+    match($0, /"([A-Z]+) /, arr)
+    method = arr[1]
+    count[method]++
+}
+END {
+    for (m in count) {
+        print m ": " count[m]
+    }
+}' "$LOG_FILE" >> "$REPORT_FILE"
+echo "" >> "$REPORT_FILE"
+
+# 4. Самый популярный URL 
+echo "Самый популярный URL:" >> "$REPORT_FILE"
+awk '{
+    match($0, /" [A-Z]+ ([^ ]+)/, arr)
+    url = arr[1]
+    count[url]++
+}
+END {
+    max = 0
+    popular = ""
+    for (u in count) {
+        if (count[u] > max) {
+            max = count[u]
+            popular = u
+        }
+    }
+    print popular " (" max " раз(а))"
+}' "$LOG_FILE" >> "$REPORT_FILE"
+
+echo "Отчет сохранен в $REPORT_FILE:"
+cat "$REPORT_FILE"
